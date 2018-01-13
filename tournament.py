@@ -2,85 +2,59 @@ from random import random
 from datetime import datetime
 
 
-rules = {
-    'scores_table': (
-        ((1, 1), (5, 0)),
-        ((0, 5), (3, 3))
-    ),
-    'scores_table_alt': {
-        False: {False: (1, 1), True: (5, 0)},
-        True: {False: (0, 5), True: (3, 3)}
-    }
-}
-
-
 class Prisoner:
-    coins = 0
+    score = 0
     games_played = 0
     history = []
+    strategy_f = None
 
     def strategy(self):
         """
         Based on given information, works on a strategy to make a decision about next move
         :return: True to Co-Operate and False to Defect
         """
-        pass
+        return True
+
+    def play(self):
+        move = self.strategy()
+        self.history.append(move)
+        return move
+
+
+def strategy_co_op(obj):
+    return True
+
+
+def strategy_defect(obj):
+    return False
+
+
+def strategy_coin_flip(obj):
+    return random() < 0.5
 
 
 class PrisonerCoOp(Prisoner):
+    strategy_f = strategy_co_op
 
     def strategy(self):
         return True
 
 
 class PrisonerDefect(Prisoner):
+    strategy_f = strategy_defect
 
     def strategy(self):
         return False
 
 
 class PrisonerCoinFlip(Prisoner):
+    strategy_f = strategy_coin_flip
 
     def strategy(self):
         return random() < 0.5
 
 
-# def play(a_move: bool, b_move: bool) -> (int, int):
-#     return rules['scores_table'][int(a_move)][int(b_move)]
-
-
-def play2(a_move: bool, b_move: bool) -> (int, int):
-    return rules['scores_table_alt'][a_move][b_move]
-
-
-cache = rules['scores_table_alt']
-
-
-def play_cached(a_move: bool, b_move: bool) -> (int, int):
-    return cache[a_move][b_move]
-
-
-def play_embed(a_move: bool, b_move: bool) -> (int, int):
-    return {
-        False: {False: (1, 1), True: (5, 0)},
-        True: {False: (0, 5), True: (3, 3)}
-    }[a_move][b_move]
-
-
-def play_if(a_move: bool, b_move: bool) -> (int, int):
-    if a_move:
-        if b_move:
-            return 3, 3
-        else:
-            return 0, 5
-    else:
-        if b_move:
-            return 5, 0
-        else:
-            return 1, 1
-
-
-def play_if_2(a_move: bool, b_move: bool) -> (int, int):
+def play(a_move: bool, b_move: bool) -> (int, int):
     if a_move:
         if b_move:
             return 3, 3
@@ -91,25 +65,89 @@ def play_if_2(a_move: bool, b_move: bool) -> (int, int):
         return 1, 1
 
 
-def play_if_3(a_move: bool, b_move: bool) -> (int, int):
-    if a_move and b_move:
-        return 3, 3
-    elif a_move and not b_move:
-        return 0, 5
-    elif not a_move and b_move:
-        return 5, 0
-    return 1, 1
+# def game(a: Prisoner, b: Prisoner):
+#     plays_count = 10
+#
+#     a.history = []
+#     b.history = []
+#
+#     for i in range(plays_count):
+#         a_move = a.strategy()
+#         b_move = b.strategy()
+#         a.history.append(a_move)
+#         b.history.append(b_move)
+#         a_score, b_score = play(a_move, b_move)
+#         a.score += a_score
+#         b.score += b_score
+#
+#     a.games_played += 1
+#     b.games_played += 1
+
+
+# def game(a: Prisoner, b: Prisoner):
+#     plays_count = 10
+#
+#     a.history = []
+#     b.history = []
+#
+#     a_score_sum = 0
+#     b_score_sum = 0
+#
+#     for i in range(plays_count):
+#         a_move = a.strategy()
+#         b_move = b.strategy()
+#         a.history.append(a_move)
+#         b.history.append(b_move)
+#         a_score, b_score = play(a_move, b_move)
+#         a_score_sum += a_score
+#         b_score_sum += b_score
+#
+#     a.games_played += 1
+#     b.games_played += 1
 
 
 def game(a: Prisoner, b: Prisoner):
     plays_count = 10
 
-    a.history = []
-    b.history = []
+    a_history = []
+    b_history = []
+
+    a_score_sum = 0
+    b_score_sum = 0
 
     for i in range(plays_count):
         a_move = a.strategy()
         b_move = b.strategy()
+        a_history.append(a_move)
+        b_history.append(b_move)
+        a_score, b_score = play(a_move, b_move)
+        a_score_sum += a_score
+        b_score_sum += b_score
+
+    a.games_played += 1
+    b.games_played += 1
+
+
+def game2(a: Prisoner, b: Prisoner):
+    plays_count = 10
+
+    a_history = []
+    b_history = []
+
+    a_score_sum = 0
+    b_score_sum = 0
+
+    for i in range(plays_count):
+        a_move = a.strategy_f()
+        b_move = b.strategy_f()
+        a_history.append(a_move)
+        b_history.append(b_move)
+        a_score, b_score = play(a_move, b_move)
+        a_score_sum += a_score
+        b_score_sum += b_score
+
+    a.games_played += 1
+    b.games_played += 1
 
 
 class Tournament:
@@ -118,57 +156,22 @@ class Tournament:
 
 print("Hello world!")
 
-# a_score, b_score = play(False, True)
-# print(a_score)
-# print(b_score)
+benchmark_runs = 100000
 
-benchmark_runs = 1000000
-
-bench_start = datetime.now()
-
-for l in range(benchmark_runs):
-    a_move = random() < 0.5
-    b_move = random() < 0.5
-    a_score, b_score = play_if(a_move, b_move)
-
-print("$$$ " + str(datetime.now() - bench_start))
-bench_start = datetime.now()
-
-for l in range(benchmark_runs):
-    a_move = random() < 0.5
-    b_move = random() < 0.5
-    a_score, b_score = play_if_2(a_move, b_move)
-
-print("$$$ " + str(datetime.now() - bench_start))
-bench_start = datetime.now()
-
-for l in range(benchmark_runs):
-    a_move = random() < 0.5
-    b_move = random() < 0.5
-    a_score, b_score = play_if_3(a_move, b_move)
-
-print("$$$ " + str(datetime.now() - bench_start))
-bench_start = datetime.now()
-for i in range(benchmark_runs):
-    a_move = random() < 0.5
-    b_move = random() < 0.5
-    a_score, b_score = play2(a_move, b_move)
-    # with cast bool to int and check in table of tuples
-
-print("$$$ " + str(datetime.now() - bench_start))
 bench_start = datetime.now()
 
 for j in range(benchmark_runs):
-    a_move = random() < 0.5
-    b_move = random() < 0.5
-    a_score, b_score = play_cached(a_move, b_move)
+    a = PrisonerCoinFlip()
+    b = PrisonerCoinFlip()
+    game(a, b)
 
 print("$$$ " + str(datetime.now() - bench_start))
-# bench_start = datetime.now()
-#
-# for k in range(benchmark_runs):
-#     a_move = random() < 0.5
-#     b_move = random() < 0.5
-#     a_score, b_score = play_embed(a_move, b_move)
-#
-# print("$$$ " + str(datetime.now() - bench_start))
+
+bench_start = datetime.now()
+
+for k in range(benchmark_runs):
+    a = PrisonerCoinFlip()
+    b = PrisonerCoinFlip()
+    game2(a, b)
+
+print("$$$ " + str(datetime.now() - bench_start))

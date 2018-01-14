@@ -8,50 +8,58 @@ class Prisoner:
     history = []
     strategy_f = None
 
-    def strategy(self):
+    def strategy(self, *args, **kwargs):
         """
         Based on given information, works on a strategy to make a decision about next move
         :return: True to Co-Operate and False to Defect
         """
         return True
 
-    def play(self):
-        move = self.strategy()
+    def play(self, *args, **kwargs):
+        move = self.strategy(*args, **kwargs)
         self.history.append(move)
         return move
 
 
-def strategy_co_op(obj):
-    return True
-
-
-def strategy_defect(obj):
-    return False
-
-
-def strategy_coin_flip(obj):
-    return random() < 0.5
-
-
 class PrisonerCoOp(Prisoner):
-    strategy_f = strategy_co_op
 
-    def strategy(self):
+    def strategy(self, *args, **kwargs):
         return True
 
 
 class PrisonerDefect(Prisoner):
-    strategy_f = strategy_defect
 
-    def strategy(self):
+    def strategy(self, *args, **kwargs):
         return False
 
 
 class PrisonerCoinFlip(Prisoner):
-    strategy_f = strategy_coin_flip
 
-    def strategy(self):
+    def strategy(self, *args, **kwargs):
         return random() < 0.5
+
+
+# class PrisonerTitForTat(Prisoner):
+#
+#     def strategy(self, *args, **kwargs):
+#         try:
+#             return kwargs['opponent_history'][-1]
+#         except IndexError:
+#             return True
+
+
+class PrisonerTitForTat(Prisoner):
+
+    def strategy(self, *args, **kwargs):
+        if kwargs['opponent_history']:
+            return kwargs['opponent_history'][-1]
+        return True
+
+
+# class PrisonerTitForTat2(Prisoner):
+#
+#     def strategy(self, *args, **kwargs):
+#         return kwargs['opponent_history'][-1] if kwargs['opponent_history'] else True
 
 
 def play(a_move: bool, b_move: bool) -> (int, int):
@@ -106,6 +114,28 @@ def play(a_move: bool, b_move: bool) -> (int, int):
 #     b.games_played += 1
 
 
+# def game(a: Prisoner, b: Prisoner):
+#     plays_count = 10
+#
+#     a_history = []
+#     b_history = []
+#
+#     a_score_sum = 0
+#     b_score_sum = 0
+#
+#     for i in range(plays_count):
+#         a_move = a.strategy()
+#         b_move = b.strategy()
+#         a_history.append(a_move)
+#         b_history.append(b_move)
+#         a_score, b_score = play(a_move, b_move)
+#         a_score_sum += a_score
+#         b_score_sum += b_score
+#
+#     a.games_played += 1
+#     b.games_played += 1
+
+
 def game(a: Prisoner, b: Prisoner):
     plays_count = 10
 
@@ -116,30 +146,8 @@ def game(a: Prisoner, b: Prisoner):
     b_score_sum = 0
 
     for i in range(plays_count):
-        a_move = a.strategy()
-        b_move = b.strategy()
-        a_history.append(a_move)
-        b_history.append(b_move)
-        a_score, b_score = play(a_move, b_move)
-        a_score_sum += a_score
-        b_score_sum += b_score
-
-    a.games_played += 1
-    b.games_played += 1
-
-
-def game2(a: Prisoner, b: Prisoner):
-    plays_count = 10
-
-    a_history = []
-    b_history = []
-
-    a_score_sum = 0
-    b_score_sum = 0
-
-    for i in range(plays_count):
-        a_move = a.strategy_f()
-        b_move = b.strategy_f()
+        a_move = a.strategy(opponent_history=b_history)
+        b_move = b.strategy(opponent_history=a_history)
         a_history.append(a_move)
         b_history.append(b_move)
         a_score, b_score = play(a_move, b_move)
@@ -160,18 +168,9 @@ benchmark_runs = 100000
 
 bench_start = datetime.now()
 
-for j in range(benchmark_runs):
-    a = PrisonerCoinFlip()
-    b = PrisonerCoinFlip()
-    game(a, b)
-
-print("$$$ " + str(datetime.now() - bench_start))
-
-bench_start = datetime.now()
-
 for k in range(benchmark_runs):
     a = PrisonerCoinFlip()
-    b = PrisonerCoinFlip()
-    game2(a, b)
+    b = PrisonerTitForTat()
+    game(a, b)
 
 print("$$$ " + str(datetime.now() - bench_start))

@@ -42,6 +42,7 @@ def game(a: Prisoner, b: Prisoner):
 class Tournament:
     population = []
     pop_seed = {}
+    pop_seed_memory = []
     pop_len = 0
     pop_shuffle_ratio = 0
     evo_members_replacement_count = 3
@@ -59,6 +60,9 @@ class Tournament:
     def seed(self, seed_counts: dict=None):
         if not seed_counts:
             seed_counts = self.pop_seed
+
+        self.pop_seed_memory.append(seed_counts)
+
         for prisoner_type, count in seed_counts.items():
             for i in range(count):
                 self.population.append(prisoner_type())
@@ -173,7 +177,7 @@ class Tournament:
         #     print(str(avg_member) + ': ' + str(avg_score))
 
 
-# game(PrisonerCoinFlip(), PrisonerBackAndForth())
+# game(PrisonerBackAndForth(), PrisonerJOSS())
 
 tour = Tournament(seed_counts={
     PrisonerCoOp: 0,
@@ -182,6 +186,7 @@ tour = Tournament(seed_counts={
     PrisonerBackAndForth: 40,
     PrisonerTitForTat: 40,
     PrisonerTitForTwoTat: 40,
+    PrisonerJOSS: 40,
     PrisonerGrudge: 40
 })
 

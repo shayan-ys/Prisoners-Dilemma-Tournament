@@ -81,7 +81,18 @@ class PrisonerBackAndForth(Prisoner):
     name = 'Back-and-Forth'
 
     def strategy(self, *args, **kwargs):
-        # if kwargs['opponent_history']:
         if len(kwargs['opponent_history']) % 2:
             return False
+        return True
+
+
+class PrisonerJOSS(Prisoner):
+    # Tit-for-Tat but once in a while defect
+    name = 'JOSS'
+
+    def strategy(self, *args, **kwargs):
+        if kwargs['opponent_history']:
+            if random() < 0.15:
+                return False
+            return kwargs['opponent_history'][-1]
         return True

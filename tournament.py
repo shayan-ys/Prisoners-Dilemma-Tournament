@@ -1,62 +1,6 @@
-from random import random, shuffle
-
-
-class Prisoner:
-    score = 0
-    games_played = 0
-    name = 'Abstract'
-
-    def strategy(self, *args, **kwargs):
-        """
-        Based on given information, works on a strategy to make a decision about next move
-        :return: True to Co-Operate and False to Defect
-        """
-        return True
-
-    # def play(self, *args, **kwargs):
-    #     move = self.strategy(*args, **kwargs)
-    #     self.history.append(move)
-    #     return move
-
-    def __str__(self):
-        if self.games_played:
-            return self.name + ' (' + str(int(self.score / self.games_played * 100)) + ' { ' + str(
-                self.score) + '/' + str(self.games_played) + ' })'
-        else:
-            return self.name + ' (newbie)'
-
-    def __repr__(self):
-        return self.__str__()
-
-
-class PrisonerCoOp(Prisoner):
-    name = 'Co-Operate'
-
-    def strategy(self, *args, **kwargs):
-        return True
-
-
-class PrisonerDefect(Prisoner):
-    name = 'Defect'
-
-    def strategy(self, *args, **kwargs):
-        return False
-
-
-class PrisonerCoinFlip(Prisoner):
-    name = 'Coin-Flip'
-
-    def strategy(self, *args, **kwargs):
-        return random() < 0.5
-
-
-class PrisonerTitForTat(Prisoner):
-    name = 'Tit-for-Tat'
-
-    def strategy(self, *args, **kwargs):
-        if kwargs['opponent_history']:
-            return kwargs['opponent_history'][-1]
-        return True
+from strategies import *
+from random import shuffle
+from datetime import datetime
 
 
 def play(a_move: bool, b_move: bool) -> (int, int):
@@ -87,6 +31,7 @@ def game(a: Prisoner, b: Prisoner):
         a_score, b_score = play(a_move, b_move)
         a_score_sum += a_score
         b_score_sum += b_score
+        # print(str(a_move) + ' - ' + str(b_move))
 
     a.score += a_score_sum
     b.score += b_score_sum
@@ -98,8 +43,9 @@ class Tournament:
     population = []
     pop_seed = {}
     pop_len = 0
+    pop_shuffle_ratio = 0
     evo_members_replacement_count = 3
-    evo_games_ratio = 100
+    evo_games_ratio = 1000
 
     def __init__(self, *args, **kwargs):
         self.population = []
@@ -118,10 +64,14 @@ class Tournament:
                 self.population.append(prisoner_type())
         self.pop_seed = seed_counts
         self.pop_len = len(self.population)
-        self.evo_games_ratio = max(1, int(self.evo_games_ratio / self.pop_len) * self.pop_len)
+        if self.pop_len % 2 == 0:
+            self.pop_shuffle_ratio = self.pop_len / 2
+        else:
+            self.pop_shuffle_ratio = self.pop_len
+        self.evo_games_ratio = max(1, int(self.evo_games_ratio / self.pop_shuffle_ratio) * self.pop_shuffle_ratio)
 
     def play_next(self, play_index: int=0):
-        if play_index and not play_index % self.pop_len:
+        if play_index and not play_index % self.pop_shuffle_ratio:
             if not play_index % self.evo_games_ratio:
                 # print(str(play_index) + ' % ' + str(self.evo_games_ratio) + ' = 0')
                 if not self.evolution():
@@ -206,39 +156,40 @@ class Tournament:
         return True
 
     def print_report(self):
+        print('--- Diversity: ---')
         for prisoner_type, type_count in self.pop_seed.items():
             print(str(prisoner_type) + ': ' + str(type_count))
 
+        # print('--- Average scores: ---')
+        #
+        # avg_scores = {}
+        # for member in self.population:
+        #     try:
+        #         avg_scores[type(member)] += member.score
+        #     except KeyError:
+        #         avg_scores[type(member)] = member.score
+        #
+        # for avg_member, avg_score in avg_scores.items():
+        #     print(str(avg_member) + ': ' + str(avg_score))
 
-print("Hello world!")
 
-pop_seed_counts = {
-    PrisonerCoOp: 10,
+# game(PrisonerCoinFlip(), PrisonerBackAndForth())
+
+tour = Tournament(seed_counts={
+    PrisonerCoOp: 0,
     PrisonerDefect: 40,
-    PrisonerCoinFlip: 10,
-    PrisonerTitForTat: 40
-}
-
-# benchmark_runs = 100000
-#
-# bench_start = datetime.now()
-#
-# for k in range(benchmark_runs):
-#     a = PrisonerCoinFlip()
-#     b = PrisonerTitForTat()
-#     game(a, b)
-#
-# print("$$$ " + str(datetime.now() - bench_start))
-
-tour = Tournament()
-tour.seed(pop_seed_counts)
-
-# tour.find_extreme_members([6, 2, 4, 7, 9, 3, 11, 8])
+    PrisonerCoinFlip: 40,
+    PrisonerBackAndForth: 40,
+    PrisonerTitForTat: 40,
+    PrisonerTitForTwoTat: 40,
+    PrisonerGrudge: 40
+})
 
 print(tour.population)
-for i in range(1000000):
+bench_start = datetime.now()
+for i in range(100000):
     if not tour.play_next(i):
         break
-print(tour.population)
-# print(len(tour.population))
-print(tour.print_report())
+print("$$$ " + str(datetime.now() - bench_start))
+# print(tour.population)
+tour.print_report()

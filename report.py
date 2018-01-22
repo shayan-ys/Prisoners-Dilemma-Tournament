@@ -42,8 +42,6 @@ def report_to_spreadsheet(tour, **kwargs):
 
     cs.add_chart(chart)
 
-    print(kwargs)
-
     row_index = 2
     for label, value in kwargs.items():
         ws.cell(row=row_index, column=len(headers) + 2, value=label)

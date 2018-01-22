@@ -1,6 +1,9 @@
 from random import random
 
 
+plays_in_a_game = 10
+
+
 class Prisoner:
     score = 0
     games_played = 0
@@ -95,4 +98,17 @@ class PrisonerJOSS(Prisoner):
             if random() < 0.15:
                 return False
             return kwargs['opponent_history'][-1]
+        return True
+
+
+class PrisonerTitForTatExceptLast(Prisoner):
+    # Tit-for-Tat except the very last move: defect
+    name = 'Tit-for-Tat-except-last-defect'
+
+    def strategy(self, *args, **kwargs):
+        if kwargs['opponent_history']:
+            if len(kwargs['opponent_history']) == plays_in_a_game - 1:
+                return False
+            else:
+                return kwargs['opponent_history'][-1]
         return True

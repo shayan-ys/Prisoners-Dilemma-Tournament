@@ -16,15 +16,13 @@ def play(a_move: bool, b_move: bool) -> (int, int):
 
 
 def game(a: Prisoner, b: Prisoner):
-    plays_count = 10
-
     a_history = []
     b_history = []
 
     a_score_sum = 0
     b_score_sum = 0
 
-    for i in range(plays_count):
+    for i in range(plays_in_a_game):
         a_move = a.strategy(opponent_history=b_history)
         b_move = b.strategy(opponent_history=a_history)
         a_history.append(a_move)
@@ -196,7 +194,7 @@ class Tournament:
         return calculated_report
 
 
-# game(PrisonerBackAndForth(), PrisonerJOSS())
+# game(PrisonerBackAndForth(), PrisonerTitForTatExceptLast())
 
 tour = Tournament(seed_counts={
     PrisonerCoOp: 0,
@@ -205,6 +203,7 @@ tour = Tournament(seed_counts={
     PrisonerBackAndForth: 0,
     PrisonerTitForTat: 40,
     PrisonerTitForTwoTat: 40,
+    PrisonerTitForTatExceptLast: 40,
     PrisonerJOSS: 40,
     PrisonerGrudge: 40
 })

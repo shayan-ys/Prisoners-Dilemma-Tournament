@@ -173,6 +173,11 @@ class Tournament:
         print('Shuffle ratio was: ' + str(self.pop_shuffle_ratio))
         print('Shuffled ' + str(self.report_shuffle_count) + ' times.')
         print('Populated ' + str(self.report_evo_count) + ' times.')
+        calculated_report = {
+            'Shuffle ratio': self.pop_shuffle_ratio,
+            'Shuffled count': self.report_shuffle_count,
+            'Populated count': self.report_evo_count
+        }
         print('--- Diversity: ---')
         for prisoner_type, type_count in self.pop_seed.items():
             print(prisoner_type.name + ': ' + str(type_count))
@@ -188,6 +193,7 @@ class Tournament:
         #
         # for avg_member, avg_score in avg_scores.items():
         #     print(str(avg_member) + ': ' + str(avg_score))
+        return calculated_report
 
 
 # game(PrisonerBackAndForth(), PrisonerJOSS())
@@ -205,10 +211,11 @@ tour = Tournament(seed_counts={
 
 print(tour.population)
 bench_start = datetime.now()
-for i in range(1000000):
+for i in range(100000):
     if not tour.play_next(i):
         break
 print("$$$ " + str(datetime.now() - bench_start))
 # print(tour.population)
-tour.print_report()
-report_to_spreadsheet(tour.pop_seed_memory)
+report = tour.print_report()
+report['runtime'] = str(datetime.now() - bench_start)
+report_to_spreadsheet(tour, **report)

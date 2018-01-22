@@ -6,7 +6,7 @@ from openpyxl.chart import (
 from datetime import datetime
 
 
-def report_to_spreadsheet(seeds_history: list):
+def report_to_spreadsheet(tour, **kwargs):
     wb = Workbook()
     ws = wb.active
     cs = wb.create_chartsheet()
@@ -15,6 +15,8 @@ def report_to_spreadsheet(seeds_history: list):
 
     headers = []
     header_seed_keys = []
+
+    seeds_history = tour.pop_seed_memory
 
     for key, value in seeds_history[0].items():
         if not value:
@@ -39,6 +41,14 @@ def report_to_spreadsheet(seeds_history: list):
     chart.add_data(data, titles_from_data=True)
 
     cs.add_chart(chart)
+
+    print(kwargs)
+
+    row_index = 2
+    for label, value in kwargs.items():
+        ws.cell(row=row_index, column=len(headers) + 2, value=label)
+        ws.cell(row=row_index, column=len(headers) + 3, value=value)
+        row_index += 1
 
     dnow = datetime.now()
     report_name = str(dnow.day) + '_' + str(dnow.hour) + '_' + str(dnow.minute) + '_' + str(dnow.second)

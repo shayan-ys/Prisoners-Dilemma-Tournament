@@ -1,4 +1,5 @@
 from strategies import *
+from report import report_to_spreadsheet
 from random import shuffle
 from datetime import datetime
 
@@ -45,8 +46,11 @@ class Tournament:
     pop_seed_memory = []
     pop_len = 0
     pop_shuffle_ratio = 0
-    evo_members_replacement_count = 3
+    evo_members_replacement_count = 10
     evo_games_ratio = 1000
+
+    report_shuffle_count = 0
+    report_evo_count = 0
 
     def __init__(self, *args, **kwargs):
         self.population = []
@@ -61,7 +65,7 @@ class Tournament:
         if not seed_counts:
             seed_counts = self.pop_seed
 
-        self.pop_seed_memory.append(seed_counts)
+        self.pop_seed_memory.append(dict(seed_counts))
 
         for prisoner_type, count in seed_counts.items():
             for i in range(count):
@@ -77,10 +81,11 @@ class Tournament:
     def play_next(self, play_index: int=0):
         if play_index and not play_index % self.pop_shuffle_ratio:
             if not play_index % self.evo_games_ratio:
-                # print(str(play_index) + ' % ' + str(self.evo_games_ratio) + ' = 0')
+                self.report_evo_count += 1
                 if not self.evolution():
                     return False
             shuffle(self.population)
+            self.report_shuffle_count += 1
 
         player_1 = self.population.pop(0)
         player_2 = self.population.pop(0)
@@ -153,16 +158,24 @@ class Tournament:
         self.population = []
         self.seed()
 
+        # search for dominant
         for prisoner_type, type_count in self.pop_seed.items():
             if type_count == self.pop_len:
-                print(str(prisoner_type) + ' dominated the population !')
+                print('"' + prisoner_type.name + '" dominated the population !')
                 return False
+            elif type_count > 0:
+                # even one non-zero type means there is no dominant in population
+                break
         return True
 
     def print_report(self):
+        print('--- Report: ---')
+        print('Shuffle ratio was: ' + str(self.pop_shuffle_ratio))
+        print('Shuffled ' + str(self.report_shuffle_count) + ' times.')
+        print('Populated ' + str(self.report_evo_count) + ' times.')
         print('--- Diversity: ---')
         for prisoner_type, type_count in self.pop_seed.items():
-            print(str(prisoner_type) + ': ' + str(type_count))
+            print(prisoner_type.name + ': ' + str(type_count))
 
         # print('--- Average scores: ---')
         #
@@ -182,8 +195,8 @@ class Tournament:
 tour = Tournament(seed_counts={
     PrisonerCoOp: 0,
     PrisonerDefect: 40,
-    PrisonerCoinFlip: 40,
-    PrisonerBackAndForth: 40,
+    PrisonerCoinFlip: 0,
+    PrisonerBackAndForth: 0,
     PrisonerTitForTat: 40,
     PrisonerTitForTwoTat: 40,
     PrisonerJOSS: 40,
@@ -192,9 +205,10 @@ tour = Tournament(seed_counts={
 
 print(tour.population)
 bench_start = datetime.now()
-for i in range(100000):
+for i in range(1000000):
     if not tour.play_next(i):
         break
 print("$$$ " + str(datetime.now() - bench_start))
 # print(tour.population)
 tour.print_report()
+report_to_spreadsheet(tour.pop_seed_memory)

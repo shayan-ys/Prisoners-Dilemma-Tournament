@@ -30,7 +30,7 @@ def game(a: Prisoner, b: Prisoner):
         a_score, b_score = play(a_move, b_move)
         a_score_sum += a_score
         b_score_sum += b_score
-        # print(str(a_move) + ' - ' + str(b_move))
+        print(str(a_move) + ' - ' + str(b_move))
 
     a.score += a_score_sum
     b.score += b_score_sum
@@ -194,27 +194,32 @@ class Tournament:
         return calculated_report
 
 
-# game(PrisonerBackAndForth(), PrisonerTitForTatExceptLast())
+tester = PrisonerTester()
+game(PrisonerGrudge(), tester)
 
-tour = Tournament(seed_counts={
-    PrisonerCoOp: 0,
-    PrisonerDefect: 40,
-    PrisonerCoinFlip: 0,
-    PrisonerBackAndForth: 0,
-    PrisonerTitForTat: 40,
-    PrisonerTitForTwoTat: 40,
-    PrisonerTitForTatExceptLast: 40,
-    PrisonerJOSS: 40,
-    PrisonerGrudge: 40
-})
+print('--')
+print(tester.opponent_type)
 
-print(tour.population)
-bench_start = datetime.now()
-for i in range(100000):
-    if not tour.play_next(i):
-        break
-print("$$$ " + str(datetime.now() - bench_start))
+# tour = Tournament(seed_counts={
+#     PrisonerCoOp: 40,
+#     PrisonerDefect: 40,
+#     PrisonerCoinFlip: 40,
+#     PrisonerBackAndForth: 40,
+#     PrisonerTitForTat: 40,
+#     PrisonerTitForTwoTat: 40,
+#     PrisonerTitForTatExceptLast: 40,
+#     PrisonerJOSS: 40,
+#     PrisonerGrudge: 40
+# })
+#
 # print(tour.population)
-report = tour.print_report()
-report['runtime'] = str(datetime.now() - bench_start)
-report_to_spreadsheet(tour, **report)
+# bench_start = datetime.now()
+# for i in range(100000):
+#     if not tour.play_next(i):
+#         break
+# print("$$$ " + str(datetime.now() - bench_start))
+# # print(tour.population)
+# report = tour.print_report()
+# report['Runtime'] = str(datetime.now() - bench_start)
+# report['Iterations'] = i
+# report_to_spreadsheet(tour, **report)

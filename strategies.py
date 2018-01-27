@@ -9,7 +9,8 @@ class Prisoner:
     games_played = 0
     name = 'Abstract'
 
-    def strategy(self, *args, **kwargs):
+    @staticmethod
+    def strategy(*args, **kwargs):
         """
         Based on given information, works on a strategy to make a decision about next move
         :return: True to Co-Operate and False to Defect
@@ -30,28 +31,32 @@ class Prisoner:
 class PrisonerCoOp(Prisoner):
     name = 'Co-Operate'
 
-    def strategy(self, *args, **kwargs):
+    @staticmethod
+    def strategy(*args, **kwargs):
         return True
 
 
 class PrisonerDefect(Prisoner):
     name = 'Defect'
 
-    def strategy(self, *args, **kwargs):
+    @staticmethod
+    def strategy(*args, **kwargs):
         return False
 
 
 class PrisonerCoinFlip(Prisoner):
     name = 'Coin-Flip'
 
-    def strategy(self, *args, **kwargs):
+    @staticmethod
+    def strategy(*args, **kwargs):
         return random() < 0.5
 
 
 class PrisonerTitForTat(Prisoner):
     name = 'Tit-for-Tat'
 
-    def strategy(self, *args, **kwargs):
+    @staticmethod
+    def strategy(*args, **kwargs):
         if kwargs['opponent_history']:
             return kwargs['opponent_history'][-1]
         return True
@@ -60,7 +65,8 @@ class PrisonerTitForTat(Prisoner):
 class PrisonerGrudge(Prisoner):
     name = 'Grudge'
 
-    def strategy(self, *args, **kwargs):
+    @staticmethod
+    def strategy(*args, **kwargs):
         if kwargs['opponent_history']:
             if False in kwargs['opponent_history']:
                 return False
@@ -70,7 +76,8 @@ class PrisonerGrudge(Prisoner):
 class PrisonerTitForTwoTat(Prisoner):
     name = 'Tit-for-Two-Tat'
 
-    def strategy(self, *args, **kwargs):
+    @staticmethod
+    def strategy(*args, **kwargs):
         if kwargs['opponent_history']:
             try:
                 if not kwargs['opponent_history'][-1] and not kwargs['opponent_history'][-2]:
@@ -83,7 +90,8 @@ class PrisonerTitForTwoTat(Prisoner):
 class PrisonerBackAndForth(Prisoner):
     name = 'Back-and-Forth'
 
-    def strategy(self, *args, **kwargs):
+    @staticmethod
+    def strategy(*args, **kwargs):
         if len(kwargs['opponent_history']) % 2:
             return False
         return True
@@ -93,7 +101,8 @@ class PrisonerJOSS(Prisoner):
     # Tit-for-Tat but once in a while defect
     name = 'JOSS'
 
-    def strategy(self, *args, **kwargs):
+    @staticmethod
+    def strategy(*args, **kwargs):
         if kwargs['opponent_history']:
             if random() < 0.15:
                 return False
@@ -105,10 +114,56 @@ class PrisonerTitForTatExceptLast(Prisoner):
     # Tit-for-Tat except the very last move: defect
     name = 'Tit-for-Tat-except-last-defect'
 
-    def strategy(self, *args, **kwargs):
+    @staticmethod
+    def strategy(*args, **kwargs):
         if kwargs['opponent_history']:
             if len(kwargs['opponent_history']) == plays_in_a_game - 1:
                 return False
             else:
                 return kwargs['opponent_history'][-1]
+        return True
+
+
+class PrisonerTester(Prisoner):
+    # This strategy have the ability to identify tit-for-tat or tit-for-two-tat opponent and play so as it can win
+
+    name = "Tester"
+    opponent_type = 'Unknown'
+
+    def strategy(self, *args, **kwargs):
+
+        if self.opponent_type == 'Not-nice':
+            return PrisonerDefect.strategy(*args, **kwargs)
+
+        op_history = kwargs['opponent_history']
+        if op_history and len(op_history) <= 5:
+
+            if len(op_history) == 1 or len(op_history) == 2:
+                if not op_history[-1]:
+                    self.opponent_type = 'Not-nice'
+                return False
+            if len(op_history) == 3:
+                if op_history[-1]:
+                    self.opponent_type = 'Tit-for-Two-Tat'
+                else:
+                    self.opponent_type = 'Tit-for-Tat'
+                return True
+            if len(op_history) == 4:
+                if op_history[-1]:
+                    self.opponent_type = 'CoOp'
+                    return False
+
+            if len(op_history) == 5:
+                if not op_history[-1]:
+                    self.opponent_type = 'Grudge'
+
+        if self.opponent_type == 'Tit-for-Tat':
+            return PrisonerTitForTatExceptLast.strategy(*args, **kwargs)
+        if self.opponent_type == 'Tit-for-Two-Tat':
+            return PrisonerBackAndForth.strategy(*args, **kwargs)
+        if self.opponent_type == 'CoOp':
+            return PrisonerDefect.strategy(*args, **kwargs)
+        if self.opponent_type == 'Grudge':
+            return PrisonerDefect.strategy(*args, **kwargs)
+
         return True

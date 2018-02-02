@@ -6,6 +6,35 @@ from openpyxl.chart import (
 from datetime import datetime
 
 
+def report_latex_table(tour):
+    pop_reports_len = len(tour.pop_seed_memory)
+    strategies_history = {}
+    indices = []
+    table_iteration_count = max(int(pop_reports_len / 4), 1)
+    j = 0
+    while j < pop_reports_len:
+        if j + table_iteration_count >= pop_reports_len and j != pop_reports_len - 1:
+            j = pop_reports_len - 1
+
+        for strategy, mem_count in tour.pop_seed_memory[j].items():
+            try:
+                strategies_history[strategy.name].append(mem_count)
+            except KeyError:
+                strategies_history[strategy.name] = [mem_count]
+        indices.append(j)
+
+        j += table_iteration_count
+
+    print('\\begin{tabular}{' + '|c|' * (len(indices) + 1) + '}')
+    print('\\hline')
+    print('Population & ' + ' & '.join(map(str, indices)) + '\\\\')
+    print('\\hline')
+    for strategy, pop_history in strategies_history.items():
+        print(strategy + ' & ' + ' & '.join(map(str, pop_history)) + '\\\\')
+        print('\\hline')
+    print('\\end{tabular}')
+
+
 def report_to_spreadsheet(tour, **kwargs):
     wb = Workbook()
     ws = wb.active

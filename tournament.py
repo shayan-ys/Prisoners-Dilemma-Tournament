@@ -1,5 +1,5 @@
 from strategies import *
-from report import report_to_spreadsheet
+from report import report_to_spreadsheet, report_latex_table
 from random import shuffle
 from datetime import datetime
 
@@ -30,7 +30,7 @@ def game(a: Prisoner, b: Prisoner):
         a_score, b_score = play(a_move, b_move)
         a_score_sum += a_score
         b_score_sum += b_score
-        print(str(a_move) + ' - ' + str(b_move))
+        # print(str(a_move) + ' - ' + str(b_move))
 
     a.score += a_score_sum
     b.score += b_score_sum
@@ -194,32 +194,35 @@ class Tournament:
         return calculated_report
 
 
-tester = PrisonerTester()
-game(PrisonerGrudge(), tester)
-
-print('--')
-print(tester.opponent_type)
-
-# tour = Tournament(seed_counts={
-#     PrisonerCoOp: 40,
-#     PrisonerDefect: 40,
-#     PrisonerCoinFlip: 40,
-#     PrisonerBackAndForth: 40,
-#     PrisonerTitForTat: 40,
-#     PrisonerTitForTwoTat: 40,
-#     PrisonerTitForTatExceptLast: 40,
-#     PrisonerJOSS: 40,
-#     PrisonerGrudge: 40
-# })
+# tester = PrisonerTester()
+# game(PrisonerGrudge(), tester)
 #
+# print('--')
+# print(tester.opponent_type)
+
+tour = Tournament(seed_counts={
+    PrisonerCoOp: 40,
+    PrisonerDefect: 40,
+    PrisonerCoinFlip: 40,
+    PrisonerBackAndForth: 40,
+    PrisonerTitForTat: 40,
+    PrisonerTitForTwoTat: 40,
+    PrisonerTitForTatExceptLast: 40,
+    PrisonerJOSS: 40,
+    PrisonerGrudge: 40,
+    PrisonerTester: 40
+})
+
+print(tour.population)
+bench_start = datetime.now()
+for i in range(70000):
+    if not tour.play_next(i):
+        break
+print("$$$ " + str(datetime.now() - bench_start))
 # print(tour.population)
-# bench_start = datetime.now()
-# for i in range(100000):
-#     if not tour.play_next(i):
-#         break
-# print("$$$ " + str(datetime.now() - bench_start))
-# # print(tour.population)
-# report = tour.print_report()
-# report['Runtime'] = str(datetime.now() - bench_start)
-# report['Iterations'] = i
-# report_to_spreadsheet(tour, **report)
+report = tour.print_report()
+report['Runtime'] = str(datetime.now() - bench_start)
+report['Iterations'] = i
+report_to_spreadsheet(tour, **report)
+print("================")
+report_latex_table(tour)
